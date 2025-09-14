@@ -4,8 +4,6 @@ import { HERITAGE_SITES } from '../data/monuments.js';
 const MonumentDetail = ({ monument, goHome }) => {
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     const [audioPlayer, setAudioPlayer] = useState(null);
-    // REMOVED: No longer need to manually track the model's loading state.
-    // const [isLoadingModel, setIsLoadingModel] = useState(false); 
     const [isArSupported, setIsArSupported] = useState(true);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('success');
@@ -21,9 +19,13 @@ const MonumentDetail = ({ monument, goHome }) => {
         const buffer = new ArrayBuffer(44 + pcmData.byteLength);
         const view = new DataView(buffer);
         let offset = 0;
-        function writeString(str) { for (let i = 0; i < str.length; i++) view.setUint8(offset++, str.charCodeAt(i)); }
+
+        function writeString(str) {
+            for (let i = 0; i < str.length; i++) view.setUint8(offset++, str.charCodeAt(i));
+        }
         function writeUint32(val) { view.setUint32(offset, val, true); offset += 4; }
         function writeUint16(val) { view.setUint16(offset, val, true); offset += 2; }
+
         writeString('RIFF');
         writeUint32(36 + pcmData.byteLength);
         writeString('WAVE');
@@ -37,6 +39,7 @@ const MonumentDetail = ({ monument, goHome }) => {
         writeUint16(16);
         writeString('data');
         writeUint32(pcmData.byteLength);
+
         const pcm16 = new Int16Array(pcmData);
         for (let i = 0; i < pcm16.length; i++) {
             view.setInt16(offset, pcm16[i], true);
@@ -50,7 +53,7 @@ const MonumentDetail = ({ monument, goHome }) => {
             audioPlayer.pause();
         }
         setIsAudioLoading(true);
-        // IMPORTANT: Remember to add your API key here
+
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY";
         const payload = {
             contents: [{ parts: [{ text: text }] }],
@@ -58,6 +61,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                 responseMimeType: "audio/wav",
             },
         };
+
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -65,6 +69,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                 body: JSON.stringify(payload)
             });
             if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+
             const result = await response.json();
             const audioData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
             if (!audioData) throw new Error("No audio data received.");
@@ -104,6 +109,7 @@ const MonumentDetail = ({ monument, goHome }) => {
 
     return (
         <div className="container mx-auto px-4 py-8">
+            {/* 🔙 Back button */}
             <button
                 onClick={goHome}
                 className="flex items-center text-gray-600 hover:text-gray-900 font-semibold mb-6 transition-colors duration-200"
@@ -113,17 +119,17 @@ const MonumentDetail = ({ monument, goHome }) => {
                 </svg>
                 Back to Gallery
             </button>
+
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+                    {/* 3D Model Viewer */}
                     <div className="relative w-full h-[50vh] lg:h-[80vh] bg-gray-100 overflow-hidden rounded-l-xl">
-                        {/* --- REFACTORED MODEL VIEWER --- */}
                         <model-viewer
-                            // The 'src' is set directly. 'reveal' prevents it from auto-loading.
                             src={monument.modelUrl}
-                            // 'poster' shows an image until the user interacts with the model.
                             poster={monument.imageUrl}
-                            // 'reveal="interaction"' loads the model only after the user clicks.
                             reveal="interaction"
+                            environment-image="neutral"
+                            auto-bounds="tight"
                             ar
                             ar-modes="webxr scene-viewer quick-look"
                             alt={`A 3D model of ${monument.title}`}
@@ -133,19 +139,24 @@ const MonumentDetail = ({ monument, goHome }) => {
                             xr-environment
                             className="w-full h-full"
                         >
-                            {/* REMOVED: The poster and built-in loading indicator replace the manual button and spinner. */}
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white text-sm px-4 py-2 rounded-lg hidden"
+                            <div
+                                className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white text-sm px-4 py-2 rounded-lg hidden"
                                 ref={el => {
                                     if (el && !isArSupported) {
                                         el.classList.remove('hidden');
                                     }
-                                }}>
+                                }}
+                            >
                                 AR is not supported on this device.
                             </div>
                         </model-viewer>
                     </div>
+
+                    {/* Monument Info */}
                     <div className="p-6 md:p-12">
                         <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{monument.title}</h2>
+
+                        {/* Language buttons for audio */}
                         <div className="flex flex-wrap gap-2 mb-6">
                             {Object.keys(monument.history).map(lang => (
                                 <button
@@ -159,7 +170,13 @@ const MonumentDetail = ({ monument, goHome }) => {
                             ))}
                             {isAudioLoading && <span className="ml-2 text-sm text-gray-500">Loading Audio...</span>}
                         </div>
-                        <p className="text-base text-gray-700 leading-relaxed mb-8">{monument.history.en}</p>
+
+                        {/* History text */}
+                        <p className="text-base text-gray-700 leading-relaxed mb-8">
+                            {monument.history.en}
+                        </p>
+
+                        {/* Image Gallery */}
                         <div className="grid grid-cols-2 gap-4">
                             {monument.imageGallery.map((imgSrc, index) => (
                                 <img
@@ -174,6 +191,8 @@ const MonumentDetail = ({ monument, goHome }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Toast Messages */}
             {message && (
                 <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl text-white shadow-lg transition-opacity duration-300 ease-in-out z-50 ${messageType === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
                     {message}
