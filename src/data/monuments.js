@@ -21,7 +21,7 @@ export const HERITAGE_SITES = [
         title: 'India Gate',
         location: 'New Delhi',
         short: 'War memorial commemorating Indian soldiers, located on Rajpath.',
-        modelUrl: 'https://cdn.glitch.global/60451a37-567e-40e9-aa8c-7f55f2d7a228/india_gate.glb?v=1726245980123',
+        modelUrl: 'assets/models/india_gate.glb',
         imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/41/India_Gate_7159.jpg',
         imageGallery: [
             'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/India_Gate_7159.jpg/1280px-India_Gate_7159.jpg',
@@ -38,7 +38,7 @@ export const HERITAGE_SITES = [
         title: "Humayun's Tomb",
         location: 'New Delhi',
         short: "Mausoleum of Mughal Emperor Humayun and inspiration for Taj Mahal's design.",
-        modelUrl: 'https://cdn.glitch.global/60451a37-567e-40e9-aa8c-7f55f2d7a228/humayun_tomb.glb?v=1726245980246',
+        modelUrl: 'assets/models/humayun_tomb.glb',
         imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Humayun_tomb_delhi_india.jpg',
         imageGallery: [
             'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Humayun_tomb_delhi_india.jpg/1280px-Humayun_tomb_delhi_india.jpg',
@@ -55,7 +55,7 @@ export const HERITAGE_SITES = [
         title: 'The Great Sanchi Stupa',
         location: 'Madhya Pradesh',
         short: 'One of the oldest stone structures in India, built by Emperor Ashoka.',
-        modelUrl: 'https://cdn.glitch.global/60451a37-567e-40e9-aa8c-7f55f2d7a228/sanchi_stupa.glb?v=1726245980369',
+        modelUrl: 'assets/models/sanchi_stupa.glb',
         imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/09/Great_Stupa_in_Sanchi.jpg',
         imageGallery: [
             'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Great_Stupa_in-Sanchi.jpg/1280px-Great_Stupa_in-Sanchi.jpg',
@@ -72,7 +72,7 @@ export const HERITAGE_SITES = [
         title: 'Charminar',
         location: 'Hyderabad, Telangana',
         short: "Charminar is a monument and mosque located in Hyderabad, Telangana. It was constructed in 1591 by Sultan Muhammad Quli Qutb Shah, the fifth ruler of the Qutb Shahi dynasty. The monument's name, which translates to 'Four Minarets,' is widely believed to have been built to commemorate the eradication of a plague that had devastated the city. It is the centerpiece around which the city of Hyderabad was planned and remains its iconic symbol.",
-        modelUrl: 'https://cdn.glitch.global/60451a37-567e-40e9-aa8c-7f55f2d7a228/charminar.glb?v=1726245980481',
+        modelUrl: 'assets/models/charminar.glb',
         imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/Charminar%2C_Hyderabad.jpg',
         imageGallery: [
             'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Charminar%2C_Hyderabad.jpg/1280px-Charminar%2C_Hyderabad.jpg',
