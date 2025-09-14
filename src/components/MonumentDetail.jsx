@@ -64,7 +64,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error(API error: ${response.statusText});
+                if (!response.ok) throw new Error(`API error: ${response.statusText}`);
                 const result = await response.json();
                 const audioData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
                 if (!audioData) throw new Error("No audio data received.");
@@ -140,7 +140,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                         <model-viewer
                             src={isLoadingModel ? monument.modelUrl : null}
                             ar ar-modes="webxr scene-viewer quick-look"
-                            alt={A 3D model of ${monument.title}}
+                            alt={`A 3D model of ${monument.title}`}
                             auto-rotate
                             camera-controls
                             shadow-intensity="1"
@@ -180,7 +180,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                                     key={lang}
                                     onClick={() => playAudio(monument.history[lang])}
                                     disabled={isAudioLoading}
-                                    className={px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${isAudioLoading ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}}
+                                    className={`px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${isAudioLoading ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                                 >
                                     {lang === 'en' ? 'English' : lang === 'hi' ? 'हिंदी' : 'తెలుగు'}
                                 </button>
@@ -194,7 +194,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                                     key={index}
                                     src={imgSrc}
                                     className="rounded-lg shadow-sm w-full h-auto object-cover"
-                                    alt={Image of ${monument.title} ${index + 1}}
+                                    alt={`Image of ${monument.title} ${index + 1}`}
                                     loading="lazy"
                                 />
                             ))}
@@ -203,7 +203,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                 </div>
             </div>
             {message && (
-                <div className={fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl text-white shadow-lg transition-opacity duration-300 ease-in-out z-50 ${messageType === 'success' ? 'bg-green-500' : 'bg-red-500'}}>
+                <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl text-white shadow-lg transition-opacity duration-300 ease-in-out z-50 ${messageType === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
                     {message}
                 </div>
             )}
