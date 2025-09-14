@@ -4,7 +4,8 @@ import { HERITAGE_SITES } from '../data/monuments.js';
 const MonumentDetail = ({ monument, goHome }) => {
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     const [audioPlayer, setAudioPlayer] = useState(null);
-    const [isLoadingModel, setIsLoadingModel] = useState(false);
+    // REMOVED: No longer need to manually track the model's loading state.
+    // const [isLoadingModel, setIsLoadingModel] = useState(false); 
     const [isArSupported, setIsArSupported] = useState(true);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('success');
@@ -49,34 +50,25 @@ const MonumentDetail = ({ monument, goHome }) => {
             audioPlayer.pause();
         }
         setIsAudioLoading(true);
-        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=";
+        // IMPORTANT: Remember to add your API key here
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY";
         const payload = {
             contents: [{ parts: [{ text: text }] }],
             generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+                responseMimeType: "audio/wav",
             },
         };
-        const tryFetch = async (retries = 3, delay = 1000) => {
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-                const result = await response.json();
-                const audioData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-                if (!audioData) throw new Error("No audio data received.");
-                return audioData;
-            } catch (error) {
-                if (retries > 0) { await new Promise(res => setTimeout(res, delay)); return tryFetch(retries - 1, delay * 2); }
-                throw error;
-            }
-        };
-
         try {
-            const audioData = await tryFetch();
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+            const result = await response.json();
+            const audioData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+            if (!audioData) throw new Error("No audio data received.");
+
             const pcmData = Uint8Array.from(atob(audioData), c => c.charCodeAt(0)).buffer;
             const wavBlob = pcmToWav(pcmData);
             const url = URL.createObjectURL(wavBlob);
@@ -95,19 +87,13 @@ const MonumentDetail = ({ monument, goHome }) => {
     useEffect(() => {
         const checkConnectionAndAR = async () => {
             const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-            if (connection) {
-                if (connection.effectiveType && (connection.effectiveType.includes('2g') || connection.effectiveType.includes('slow-2g'))) {
-                    setIsLowBandwidth(true);
-                    showMessage("Low bandwidth detected. 3D models may load slowly.", "error");
-                }
+            if (connection && (connection.effectiveType?.includes('2g'))) {
+                setIsLowBandwidth(true);
+                showMessage("Low bandwidth detected. 3D models may load slowly.", "error");
             }
             try {
-                if (navigator.xr) {
-                    const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
-                    setIsArSupported(isSupported);
-                } else {
-                    setIsArSupported(false);
-                }
+                const isSupported = navigator.xr ? await navigator.xr.isSessionSupported('immersive-ar') : false;
+                setIsArSupported(isSupported);
             } catch (error) {
                 console.error("AR check failed:", error);
                 setIsArSupported(false);
@@ -130,16 +116,16 @@ const MonumentDetail = ({ monument, goHome }) => {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
                     <div className="relative w-full h-[50vh] lg:h-[80vh] bg-gray-100 overflow-hidden rounded-l-xl">
-                        {!isLoadingModel && !isLowBandwidth ? (
-                            <img
-                                src={monument.imageUrl}
-                                alt={monument.title}
-                                className="absolute inset-0 w-full h-full object-cover"
-                            />
-                        ) : null}
+                        {/* --- REFACTORED MODEL VIEWER --- */}
                         <model-viewer
-                            src={isLoadingModel ? monument.modelUrl : null}
-                            ar ar-modes="webxr scene-viewer quick-look"
+                            // The 'src' is set directly. 'reveal' prevents it from auto-loading.
+                            src={monument.modelUrl}
+                            // 'poster' shows an image until the user interacts with the model.
+                            poster={monument.imageUrl}
+                            // 'reveal="interaction"' loads the model only after the user clicks.
+                            reveal="interaction"
+                            ar
+                            ar-modes="webxr scene-viewer quick-look"
                             alt={`A 3D model of ${monument.title}`}
                             auto-rotate
                             camera-controls
@@ -147,21 +133,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                             xr-environment
                             className="w-full h-full"
                         >
-                            <div className="flex justify-center items-center h-full w-full">
-                                {!isLoadingModel && (
-                                    <button
-                                        className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-                                        onClick={() => setIsLoadingModel(true)}
-                                    >
-                                        Load 3D Model
-                                    </button>
-                                )}
-                            </div>
-                            {isLoadingModel && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-75">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                                </div>
-                            )}
+                            {/* REMOVED: The poster and built-in loading indicator replace the manual button and spinner. */}
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white text-sm px-4 py-2 rounded-lg hidden"
                                 ref={el => {
                                     if (el && !isArSupported) {
