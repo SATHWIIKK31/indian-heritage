@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
-import { getFirestore, collection, doc, onSnapshot, getDoc, setDoc, getDocs } from 'firebase/firestore';
+import { HERITAGE_SITES } from '../data/monuments.js';
 
 const MonumentDetail = ({ monument, goHome }) => {
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     const [audioPlayer, setAudioPlayer] = useState(null);
     const [isLoadingModel, setIsLoadingModel] = useState(false);
     const [isArSupported, setIsArSupported] = useState(true);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('success');
-    
-    // Firestore setup is now handled within MonumentDetail for simplicity, but could be a separate context or hook
-    const [db, setDb] = useState(null);
-    const [auth, setAuth] = useState(null);
-    const [userId, setUserId] = useState(null);
+    const [isLowBandwidth, setIsLowBandwidth] = useState(false);
 
     const showMessage = (text, type = 'success') => {
         setMessage(text);
@@ -73,7 +64,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+                if (!response.ok) throw new Error(API error: ${response.statusText});
                 const result = await response.json();
                 const audioData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
                 if (!audioData) throw new Error("No audio data received.");
@@ -102,7 +93,14 @@ const MonumentDetail = ({ monument, goHome }) => {
     };
 
     useEffect(() => {
-        const checkAR = async () => {
+        const checkConnectionAndAR = async () => {
+            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (connection) {
+                if (connection.effectiveType && (connection.effectiveType.includes('2g') || connection.effectiveType.includes('slow-2g'))) {
+                    setIsLowBandwidth(true);
+                    showMessage("Low bandwidth detected. 3D models may load slowly.", "error");
+                }
+            }
             try {
                 if (navigator.xr) {
                     const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
@@ -115,36 +113,8 @@ const MonumentDetail = ({ monument, goHome }) => {
                 setIsArSupported(false);
             }
         };
-
-        checkAR();
+        checkConnectionAndAR();
     }, []);
-
-    // Placeholder for Firestore, not strictly necessary for this view's functionality
-    useEffect(() => {
-        const initializeFirebase = async () => {
-            try {
-                const app = initializeApp(firebaseConfig);
-                const firestore = getFirestore(app);
-                const authInstance = getAuth(app);
-                setDb(firestore);
-                setAuth(authInstance);
-
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (initialAuthToken) {
-                    await signInWithCustomToken(authInstance, initialAuthToken);
-                } else {
-                    await signInAnonymously(authInstance);
-                }
-                const currentUserId = authInstance.currentUser?.uid || crypto.randomUUID();
-                setUserId(currentUserId);
-            } catch (error) {
-                console.error("Error initializing Firebase:", error);
-                showMessage("Failed to connect to the database. Please check your connection.", "error");
-            }
-        };
-
-        initializeFirebase();
-    }, [appId, firebaseConfig]);
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -160,7 +130,7 @@ const MonumentDetail = ({ monument, goHome }) => {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
                     <div className="relative w-full h-[50vh] lg:h-[80vh] bg-gray-100 overflow-hidden rounded-l-xl">
-                        {!isLoadingModel ? (
+                        {!isLoadingModel && !isLowBandwidth ? (
                             <img
                                 src={monument.imageUrl}
                                 alt={monument.title}
@@ -170,7 +140,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                         <model-viewer
                             src={isLoadingModel ? monument.modelUrl : null}
                             ar ar-modes="webxr scene-viewer quick-look"
-                            alt={`A 3D model of ${monument.title}`}
+                            alt={A 3D model of ${monument.title}}
                             auto-rotate
                             camera-controls
                             shadow-intensity="1"
@@ -210,7 +180,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                                     key={lang}
                                     onClick={() => playAudio(monument.history[lang])}
                                     disabled={isAudioLoading}
-                                    className={`px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${isAudioLoading ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                    className={px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${isAudioLoading ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}}
                                 >
                                     {lang === 'en' ? 'English' : lang === 'hi' ? 'हिंदी' : 'తెలుగు'}
                                 </button>
@@ -224,7 +194,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                                     key={index}
                                     src={imgSrc}
                                     className="rounded-lg shadow-sm w-full h-auto object-cover"
-                                    alt={`Image of ${monument.title} ${index + 1}`}
+                                    alt={Image of ${monument.title} ${index + 1}}
                                     loading="lazy"
                                 />
                             ))}
@@ -233,7 +203,7 @@ const MonumentDetail = ({ monument, goHome }) => {
                 </div>
             </div>
             {message && (
-                <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl text-white shadow-lg transition-opacity duration-300 ease-in-out z-50 ${messageType === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
+                <div className={fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl text-white shadow-lg transition-opacity duration-300 ease-in-out z-50 ${messageType === 'success' ? 'bg-green-500' : 'bg-red-500'}}>
                     {message}
                 </div>
             )}
