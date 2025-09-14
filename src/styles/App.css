@@ -1,0 +1,31 @@
+/*
+ * This file is for any custom styles that are not
+ * easily achievable with Tailwind CSS classes.
+ */
+
+/* Hide the scrollbar for the horizontal gallery */
+.hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
+}
+
+/* Ensure images don't stretch */
+.object-cover {
+    object-fit: cover;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.rotate-y-10 {
+    transform: rotateY(10deg);
+}
